@@ -1,8 +1,10 @@
 name: Deploy
 
-# Manually triggered so the live site at litewrite.net is never republished by
-# accident. Run this from the Actions tab once you're happy with a build.
+# Publishes the live site at litewrite.net on every push to main, and can
+# also be run manually from the Actions tab.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
