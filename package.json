@@ -1,0 +1,55 @@
+{
+  "name": "litewrite",
+  "version": "0.0.1",
+  "homepage": "http://litewrite.net",
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/litewrite/litewrite.git"
+  },
+  "bugs": {
+    "url": "https://github.com/litewrite/litewrite/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node scripts/server.js",
+    "dev": "webpack serve --config scripts/webpack.config.js",
+    "build": "NODE_ENV=production webpack --config scripts/webpack.config.js",
+    "test": "npm run lint && npm run test:smoke",
+    "test:smoke": "playwright test",
+    "lint": "standard",
+    "format": "standard --fix",
+    "production": "npm run build && NODE_ENV=production npm start"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "autosize": "^6.0.1",
+    "backbone": "^1.6.1",
+    "backbone.localstorage": "^1.1.16",
+    "jquery": "^4.0.0",
+    "remotestorage-module-documents": "^0.2.1",
+    "remotestorage-widget": "^1.8.1",
+    "remotestoragejs": "^1.2.3",
+    "standard": "^17.1.2",
+    "underscore": "^1.13.8",
+    "uuid": "^14.0.1",
+    "webpack": "^5.109.0",
+    "webpack-cli": "^7.2.1",
+    "webpack-dev-server": "^6.0.0",
+    "workbox-webpack-plugin": "^7.4.1",
+    "workbox-window": "^7.4.1"
+  },
+  "standard": {
+    "ignore": [
+      "lib",
+      "service-worker.js",
+      "litewrite.min.js",
+      "workbox-*.js"
+    ]
+  }
+}
