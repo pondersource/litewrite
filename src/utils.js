@@ -1,8 +1,8 @@
-var $ = require('jquery')
-var _ = require('underscore')
-var translations = require('./translations')
+const $ = require('jquery')
+const _ = require('underscore')
+const translations = require('./translations')
 
-var utils = {}
+const utils = {}
 
 utils.isMac = /Mac/.test(navigator.platform)
 
@@ -22,13 +22,13 @@ utils.escapeRegExp = function (str) {
 }
 
 // in seconds
-var hour = 3600
-var day = 24 * hour
-var week = 7 * day
-var month = 30.4 * day
-var year = 365 * day
+const hour = 3600
+const day = 24 * hour
+const week = 7 * day
+const month = 30.4 * day
+const year = 365 * day
 
-var quantifiers = [
+const quantifiers = [
   {
     name: 'yearsAgo',
     time: year
@@ -60,9 +60,9 @@ var quantifiers = [
 ]
 
 utils.timeAgo = function (date) {
-  var diff = (Date.now() - date) / 1000 // in seconds
+  const diff = (Date.now() - date) / 1000 // in seconds
 
-  var quantifier = _.find(quantifiers, function (q) {
+  const quantifier = _.find(quantifiers, function (q) {
     return diff >= q.time
   })
 
@@ -70,21 +70,23 @@ utils.timeAgo = function (date) {
     return
   }
 
-  var count = Math.round(diff / quantifier.time)
+  const count = Math.round(diff / quantifier.time)
   return translations[quantifier.name](count)
 }
 
-utils.handleAppcacheUpdates = function () {
-  var appcache = window.applicationCache
-  if (!appcache) {
-    return
-  }
+utils.registerServiceWorker = function () {
+  const Workbox = require('workbox-window').Workbox
+  const wb = new Workbox('service-worker.js')
 
-  appcache.addEventListener('updateready', function (e) {
-    if (appcache.status !== appcache.UPDATEREADY) return
+  wb.addEventListener('waiting', function () {
     if (!window.confirm(translations.updateCache)) return
-    window.location.reload()
-  }, false)
+    wb.addEventListener('controlling', function () {
+      window.location.reload()
+    })
+    wb.messageSkipWaiting()
+  })
+
+  wb.register()
 }
 
 utils.hotKey = utils.isMac ? 'Alt' : 'Ctrl'

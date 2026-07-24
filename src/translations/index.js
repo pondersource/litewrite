@@ -1,6 +1,6 @@
-var lang = (navigator.language || navigator.browserLanguage).slice(0, 2)
+const lang = (navigator.language || navigator.browserLanguage).slice(0, 2)
 
-var translations = {
+const translations = {
   de: require('./de'),
   en: require('./en'),
   fr: require('./fr'),

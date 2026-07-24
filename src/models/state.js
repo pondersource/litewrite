@@ -1,7 +1,7 @@
-var Backbone = require('backbone')
-var Store = require('backbone.localstorage')
+const Backbone = require('backbone')
+const Store = require('backbone.localstorage')
 
-var State = Backbone.Model.extend({
+const State = Backbone.Model.extend({
   defaults: {
     id: 0,
     query: ''

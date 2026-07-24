@@ -1,11 +1,11 @@
-var _ = require('underscore')
-var Backbone = require('backbone')
-var utils = require('../utils')
-var lang = require('../translations')
-var autosize = require('autosize')
-var $ = require('jquery')
+const _ = require('underscore')
+const Backbone = require('backbone')
+const utils = require('../utils')
+const lang = require('../translations')
+const autosize = require('autosize')
+const $ = require('jquery')
 
-var EditorView = Backbone.View.extend({
+const EditorView = Backbone.View.extend({
   el: '#editor',
 
   initialize: function (options) {
@@ -36,10 +36,10 @@ var EditorView = Backbone.View.extend({
 
   render: function () {
     // Only re-render when content changed
-    var content = this.model.get('content')
-    var query = this.litewrite.state.get('query')
+    const content = this.model.get('content')
+    const query = this.litewrite.state.get('query')
 
-    var highlightedText = this.applyHighlights(content, query)
+    const highlightedText = this.applyHighlights(content, query)
     this.updateHighlight(highlightedText)
 
     if (content === this.$el.val()) {
@@ -49,7 +49,7 @@ var EditorView = Backbone.View.extend({
     this.$el.val(content || '')
     autosize.update(this.$el)
 
-    var pos = this.model.get('cursorPos')
+    const pos = this.model.get('cursorPos')
     if (pos) {
       this.setCursor(pos)
     }
@@ -77,7 +77,7 @@ var EditorView = Backbone.View.extend({
   },
 
   events: {
-    'input': 'updateOpenDoc'
+    input: 'updateOpenDoc'
   },
 
   updateOpenDoc: function () {
@@ -91,12 +91,12 @@ var EditorView = Backbone.View.extend({
   // Set CSS class for certain languages to adjust styling.
   // For char classes see: http://kourge.net/projects/regexp-unicode-block
   handleCharEncodings: function (doc) {
-    var c = doc.get('content')
-    var isCyrillic = !!c.match('[\u0400-\u04FF\u0500-\u052F]')
+    const c = doc.get('content')
+    const isCyrillic = !!c.match('[\u0400-\u04FF\u0500-\u052F]')
     this.$el.toggleClass('cyrillic', isCyrillic)
 
     // Arabic, Hebrew, Syriac & Thaana
-    var isRTL = !!c.match('[\u0600-\u06FF\u0750-\u077F\u0590-\u05FF\u0700-\u074F\u0780-\u07BF]')
+    const isRTL = !!c.match('[\u0600-\u06FF\u0750-\u077F\u0590-\u05FF\u0700-\u074F\u0780-\u07BF]')
     this.$el.toggleClass('rtl', isRTL)
   },
 
@@ -111,8 +111,8 @@ var EditorView = Backbone.View.extend({
   },
 
   insertTab: function () {
-    var pos = this.$el.prop('selectionStart')
-    var v = this.$el.val()
+    const pos = this.$el.prop('selectionStart')
+    const v = this.$el.val()
     this.$el.val(v.substring(0, pos) + '\t' + v.substring(pos, v.length))
     this.setCursor(pos + 1)
     this.updateOpenDoc()
@@ -123,13 +123,13 @@ var EditorView = Backbone.View.extend({
   },
 
   applyHighlights: function (text, query) {
-    var queryRegex = new RegExp(this.escapeRegex(query), 'gi')
+    const queryRegex = new RegExp(this.escapeRegex(query), 'gi')
     text = text
       .replace(/\n$/g, '\n\n')
       .replace(queryRegex, '<mark>$&</mark>')
 
-    var ua = window.navigator.userAgent.toLowerCase()
-    var isIE = !!ua.match(/msie|trident\/7|edge/)
+    const ua = window.navigator.userAgent.toLowerCase()
+    const isIE = !!ua.match(/msie|trident\/7|edge/)
     if (isIE) {
       // IE wraps whitespace differently in a div vs textarea, this fixes it
       text = text.replace(/ /g, ' <wbr>')

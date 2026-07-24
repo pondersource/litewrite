@@ -1,14 +1,14 @@
-var _ = require('underscore')
-var $ = require('jquery')
-var Backbone = require('backbone')
-var utils = require('../utils')
-var Snap = require('snap')
-var lang = require('../translations')
+const _ = require('underscore')
+const $ = require('jquery')
+const Backbone = require('backbone')
+const utils = require('../utils')
+const Snap = require('snap')
+const lang = require('../translations')
 
 // Allow hiding of sitebar if at list this number of docs
-var minDocsForHide = 3
+const minDocsForHide = 3
 
-var AsideView = Backbone.View.extend({
+const AsideView = Backbone.View.extend({
   el: 'body',
 
   initialize: function () {

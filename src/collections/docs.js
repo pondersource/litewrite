@@ -1,12 +1,12 @@
-var _ = require('underscore')
-var Backbone = require('backbone')
-var utils = require('../utils')
-var Doc = require('../models/doc')
-var rsSync = require('rs-adapter')
-var lang = require('../translations')
-const uuid = require('uuid/v4')
+const _ = require('underscore')
+const Backbone = require('backbone')
+const utils = require('../utils')
+const Doc = require('../models/doc')
+const rsSync = require('rs-adapter')
+const lang = require('../translations')
+const { v4: uuid } = require('uuid')
 
-var Docs = Backbone.Collection.extend({
+const Docs = Backbone.Collection.extend({
   model: Doc,
 
   sync: rsSync,
@@ -43,7 +43,7 @@ var Docs = Backbone.Collection.extend({
 
   welcome: function () {
     if (this.isEmpty()) {
-      const welcomeContent = lang.welcome.replace(new RegExp('{Alt}', 'g'), utils.hotKey)
+      const welcomeContent = lang.welcome.replace(/{Alt}/g, utils.hotKey)
       this.addNew({ content: welcomeContent })
     }
   },
@@ -66,13 +66,13 @@ var Docs = Backbone.Collection.extend({
         return
       }
       // Add
-      var existingDoc = this.get(event.newValue.id)
+      const existingDoc = this.get(event.newValue.id)
       if (!existingDoc) {
         this.add(event.newValue)
         return
       }
       // Update
-      var isLatest = event.newValue.lastEdited > existingDoc.get('lastEdited')
+      const isLatest = event.newValue.lastEdited > existingDoc.get('lastEdited')
       if (!isLatest) {
         return
       }
