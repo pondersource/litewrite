@@ -23,10 +23,22 @@ jobs:
 
       - run: npm run build
 
+      - name: Assemble site
+        # Copy only the files the live site needs into a clean directory.
+        # Building straight from the repo checkout doesn't work here: that
+        # checkout's own .gitignore lists litewrite.min.js/service-worker.js
+        # (they're build artifacts, not committed), and actions-gh-pages
+        # respects that .gitignore when it copies publish_dir, so the exact
+        # files we want published get silently dropped.
+        run: |
+          rm -rf site
+          mkdir site
+          cp index.html litewrite.min.js litewrite.min.js.LICENSE.txt service-worker.js workbox-*.js CNAME site/
+          cp -r img style site/
+
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
+          publish_dir: ./site
           publish_branch: gh-pages
-          exclude_assets: 'node_modules,src,scripts,tests,lib,.github,*.md'
