@@ -1,18 +1,18 @@
-var Backbone = require('backbone')
-var _ = require('underscore')
-var EntriesView = require('./entries')
-var EditorView = require('./editor')
-var DateView = require('./date')
-var AsideView = require('./aside')
-var SearchView = require('./search')
-var ShareView = require('./share')
-var DeleteView = require('./delete')
-var utils = require('../utils')
+const Backbone = require('backbone')
+const _ = require('underscore')
+const EntriesView = require('./entries')
+const EditorView = require('./editor')
+const DateView = require('./date')
+const AsideView = require('./aside')
+const SearchView = require('./search')
+const ShareView = require('./share')
+const DeleteView = require('./delete')
+const utils = require('../utils')
 
 // Enable search if at least this number of documents
-var searchMinDocCount = 10
+const searchMinDocCount = 10
 
-var AppView = Backbone.View.extend({
+const AppView = Backbone.View.extend({
   el: 'body',
 
   initialize: function (options) {
@@ -25,8 +25,8 @@ var AppView = Backbone.View.extend({
     this.search = new SearchView({ model: this.litewrite.state })
     this.entries = new EntriesView({ litewrite: this.litewrite, collection: this.collection })
     this.date = new DateView({ model: this.model })
-    var deleteView = new DeleteView({ model: this.model })
-    var share = new ShareView({ model: this.model, collection: this.collection, remote: options.remote })
+    const deleteView = new DeleteView({ model: this.model })
+    const share = new ShareView({ model: this.model, collection: this.collection, remote: options.remote })
 
     this.litewrite
       .on('ready', this.editor.render)
@@ -62,8 +62,8 @@ var AppView = Backbone.View.extend({
     'touchend #add': 'newDoc',
     'click #menu-button': 'toggleAside',
     'touchend #menu-button': 'toggleAside',
-    'keydown': 'handleKey',
-    'keyup': 'closeAside'
+    keydown: 'handleKey',
+    keyup: 'closeAside'
   },
 
   newDoc: function () {
@@ -93,10 +93,10 @@ var AppView = Backbone.View.extend({
 
   // Global key handler for shortcuts
   handleKey: function (e) {
-    var tabKey = e.keyCode === 9
+    const tabKey = e.keyCode === 9
 
-    var sKey = e.keyCode === 83
-    var saveShortcut = sKey && e.metaKey
+    const sKey = e.keyCode === 83
+    const saveShortcut = sKey && e.metaKey
 
     if (tabKey && !e.shiftKey) {
       this.editor.insertTab()
@@ -110,7 +110,7 @@ var AppView = Backbone.View.extend({
     const hotKey = (utils.isMac && e.altKey) || e.ctrlKey
     if (!hotKey) return
 
-    var shortcut = this.shortcuts[e.keyCode]
+    const shortcut = this.shortcuts[e.keyCode]
     if (!shortcut) {
       return
     }
@@ -140,21 +140,21 @@ var AppView = Backbone.View.extend({
   },
 
   previous: function () {
-    var id = this.entries.previous(this.model.id)
+    const id = this.entries.previous(this.model.id)
     if (id) {
       this.litewrite.open(id)
     }
   },
 
   next: function () {
-    var id = this.entries.next(this.model.id)
+    const id = this.entries.next(this.model.id)
     if (id) {
       this.litewrite.open(id)
     }
   },
 
   closeAside: function (e) {
-    var isModKey = e.keyCode === 18
+    const isModKey = e.keyCode === 18
     if (!isModKey) {
       return
     }

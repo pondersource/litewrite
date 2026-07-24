@@ -1,6 +1,6 @@
-var Backbone = require('backbone')
+const Backbone = require('backbone')
 
-var Router = Backbone.Router.extend({
+const Router = Backbone.Router.extend({
   initialize: function (options) {
     this.litewrite = options.litewrite
   },
@@ -16,13 +16,13 @@ var Router = Backbone.Router.extend({
   },
 
   open: function (url) {
-    var match = url.match(/^\((.+?)\)/)
+    const match = url.match(/^\((.+?)\)/)
     if (!match) {
       this.openFirst()
       return
     }
 
-    var id = match[1]
+    const id = match[1]
     if (!id) {
       this.openFirst()
       return

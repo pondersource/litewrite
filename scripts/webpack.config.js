@@ -1,65 +1,95 @@
 const path = require('path')
+const fs = require('fs')
+const crypto = require('crypto')
 const webpack = require('webpack')
-const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin')
+const { GenerateSW } = require('workbox-webpack-plugin')
+
+const isProduction = process.env.NODE_ENV === 'production'
+const root = path.join(__dirname, '..')
+
+function hashFile (relativePath) {
+  const contents = fs.readFileSync(path.join(root, relativePath))
+  return crypto.createHash('md5').update(contents).digest('hex')
+}
+
+function precacheEntries (dir, pattern) {
+  return fs.readdirSync(path.join(root, dir))
+    .filter((file) => pattern.test(file))
+    .map((file) => ({
+      url: `${dir}/${file}`,
+      revision: hashFile(`${dir}/${file}`)
+    }))
+}
 
 const config = {
-  entry: [
-    './src/main'
-  ],
+  mode: isProduction ? 'production' : 'development',
+  entry: './src/main',
   output: {
-    path: path.join(__dirname, '..'),
+    path: root,
     filename: 'litewrite.min.js'
   },
   plugins: [
-    new webpack.optimize.OccurenceOrderPlugin(),
-    new webpack.NoErrorsPlugin(),
-    new webpack.IgnorePlugin(new RegExp('^(xmlhttprequest|./lang)$'))
+    // remotestoragejs conditionally requires these modules that only exist in node/other environments
+    new webpack.IgnorePlugin({ resourceRegExp: /^(xmlhttprequest|\.\/lang)$/ }),
+    // remotestorage-module-documents still imports the removed `uuid/v4` deep import
+    new webpack.NormalModuleReplacementPlugin(
+      /^uuid\/v4$/,
+      path.join(root, 'lib/uuid-v4-shim.js')
+    )
   ],
   module: {
-    loaders: [
+    rules: [
       {
         test: [/\.txt$/, /\.html$/],
-        loader: 'raw'
+        type: 'asset/source'
       }
     ]
   },
   resolve: {
+    // Our source is plain CommonJS (no ESM interop helpers), so prefer each
+    // dependency's CJS/UMD build over its ESM one to avoid getting back a
+    // `{ default: ... }` namespace object where a function is expected.
+    mainFields: ['browser', 'main', 'module'],
     alias: {
-      'rs-adapter': path.join(__dirname, '../lib/backbone.remoteStorage-documents'),
-      snap: path.join(__dirname, '../lib/snap')
+      'rs-adapter': path.join(root, 'lib/backbone.remoteStorage-documents'),
+      snap: path.join(root, 'lib/snap')
     }
-  },
-  cssnext: {
-    browsers: 'last 2 versions'
   }
 }
 
-if (process.env.NODE_ENV === 'production') {
+if (isProduction) {
   config.plugins.push(
-    new webpack.optimize.UglifyJsPlugin({
-      compressor: {
-        warnings: false
-      }
-    }),
-    new SWPrecacheWebpackPlugin({
-      cacheId: 'litewrite',
-      minify: true,
-      staticFileGlobs: [
-        'style/litewrite.css',
-        'style/*.ttf',
-        'style/*.otf',
-        'img/*.png',
-        'img/*.svg'
-      ]
-    }),
     new webpack.DefinePlugin({
       'window.PRODUCTION': 'true'
+    }),
+    new GenerateSW({
+      cacheId: 'litewrite',
+      swDest: 'service-worker.js',
+      clientsClaim: true,
+      skipWaiting: false,
+      additionalManifestEntries: [
+        { url: 'style/litewrite.css', revision: hashFile('style/litewrite.css') },
+        ...precacheEntries('style', /\.(ttf|otf)$/),
+        ...precacheEntries('img', /\.(png|svg)$/)
+      ]
     })
   )
 } else {
-  config.devtool = 'cheap-module-eval-source-map'
-  config.entry.unshift('webpack-hot-middleware/client')
-  config.plugins.push(new webpack.HotModuleReplacementPlugin())
+  config.devtool = 'eval-cheap-module-source-map'
+  config.devServer = {
+    static: {
+      directory: root,
+      // Only JS needs hot-reloading; watching the whole repo root also
+      // picks up unrelated writes (e.g. test-results/) and forces spurious
+      // full-page reloads.
+      watch: false
+    },
+    port: 8000,
+    hot: true,
+    client: {
+      overlay: true
+    }
+  }
 }
 
 module.exports = config

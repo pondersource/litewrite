@@ -1,15 +1,15 @@
-var _ = require('underscore')
-var Backbone = require('backbone')
-var RemoteStorage = require('remotestoragejs')
-var RemostStorageDocuments = require('remotestorage-module-documents')
-var Widget = require('remotestorage-widget')
-var AppView = require('./views/app')
-var Doc = require('./models/doc')
-var Docs = require('./collections/docs')
-var State = require('./models/state')
+const _ = require('underscore')
+const Backbone = require('backbone')
+const RemoteStorage = require('remotestoragejs')
+const RemostStorageDocuments = require('remotestorage-module-documents')
+const Widget = require('remotestorage-widget')
+const AppView = require('./views/app')
+const Doc = require('./models/doc')
+const Docs = require('./collections/docs')
+const State = require('./models/state')
 
-var dropboxApiKey = '6p6q5imoisraq6k'
-var googleDriveClientID = '376607343336-uabp27dse5s1jkr767jpdeqhj7t90bll.apps.googleusercontent.com'
+const dropboxApiKey = '6p6q5imoisraq6k'
+const googleDriveClientID = '376607343336-uabp27dse5s1jkr767jpdeqhj7t90bll.apps.googleusercontent.com'
 
 function Litewrite () {
   this.initialize()
@@ -29,7 +29,7 @@ _.extend(Litewrite.prototype, Backbone.Events, {
       'triggerDisconnected'
     )
 
-    var rs = new RemoteStorage({ modules: [RemostStorageDocuments] })
+    const rs = new RemoteStorage({ modules: [RemostStorageDocuments] })
     rs.setApiKeys({
       dropbox: dropboxApiKey,
       googledrive: googleDriveClientID
@@ -96,7 +96,7 @@ _.extend(Litewrite.prototype, Backbone.Events, {
 
   // remove empty documents
   handlePrevious: function (doc) {
-    var previous = this.docs.get(doc.previous('id'))
+    const previous = this.docs.get(doc.previous('id'))
     if (previous && previous.isEmpty()) {
       previous.destroy()
     }
@@ -107,7 +107,7 @@ _.extend(Litewrite.prototype, Backbone.Events, {
   },
 
   handleRemoteRemove: function (doc, docs, options) {
-    var removedLocally = options.success && options.error
+    const removedLocally = options.success && options.error
     // Open first doc so editor doesn't display the removed doc
     if (!removedLocally) {
       this.open()

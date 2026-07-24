@@ -1,8 +1,8 @@
-var Backbone = require('backbone')
-var _ = require('underscore')
-var lang = require('../translations')
+const Backbone = require('backbone')
+const _ = require('underscore')
+const lang = require('../translations')
 
-var DeleteView = Backbone.View.extend({
+const DeleteView = Backbone.View.extend({
   el: '#delete',
 
   initialize: function () {

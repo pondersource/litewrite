@@ -33,20 +33,18 @@ Jorin & Jan-Christoph
 
 ## Contribute
 
-[![Build Status](https://travis-ci.org/litewrite/litewrite.svg?branch=gh-pages)](https://travis-ci.org/litewrite/litewrite)
-
-
 Play with the [development version](http://litewrite.github.com/litewrite), check out [issues](http://github.com/litewrite/litewrite/issues) and dive into the code if you like.
 
 Set up your development environment:
 
 1. `git clone https://github.com/litewrite/litewrite.git`
 2. `cd litewrite`
-3. Install [node.js](http://nodejs.org/)
-5. Run `npm install` to install the development dependencies
-6. `npm start` to start a web server at [http://localhost:8000](http://localhost:8000)
-7. Check your code style with `npm run lint`
-8. Build the production version with `npm run build`
+3. Install [node.js](http://nodejs.org/) (v18 or later)
+4. Run `npm install` to install the development dependencies
+5. `npm run dev` to start a dev server with hot reloading at [http://localhost:8000](http://localhost:8000)
+6. Check your code style with `npm run lint`
+7. Run the Playwright smoke tests with `npm run test:smoke` (or `npm test` for lint + smoke tests)
+8. Build the production version with `npm run build`, then serve it with `npm start`
 
 
 ## Thanks

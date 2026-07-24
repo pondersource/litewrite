@@ -1,7 +1,7 @@
-var Backbone = require('backbone')
-var lang = require('../translations')
+const Backbone = require('backbone')
+const lang = require('../translations')
 
-var SearchView = Backbone.View.extend({
+const SearchView = Backbone.View.extend({
   el: '#search',
 
   initialize: function () {
@@ -10,9 +10,9 @@ var SearchView = Backbone.View.extend({
   },
 
   events: {
-    'search': 'search',
-    'keyup': 'handleKey',
-    'focus': 'triggerFocus'
+    search: 'search',
+    keyup: 'handleKey',
+    focus: 'triggerFocus'
   },
 
   render: function () {
@@ -20,12 +20,12 @@ var SearchView = Backbone.View.extend({
   },
 
   search: function () {
-    var query = this.$el.val()
+    const query = this.$el.val()
     this.model.save('query', query)
   },
 
   handleKey: function (e) {
-    var isEnter = e.which === 13
+    const isEnter = e.which === 13
     if (isEnter) {
       e.preventDefault()
       this.trigger('blur')

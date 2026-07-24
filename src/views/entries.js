@@ -1,9 +1,9 @@
-var _ = require('underscore')
-var Backbone = require('backbone')
-var entriesTemplate = require('../templates/entries.html')
-var lang = require('../translations')
+const _ = require('underscore')
+const Backbone = require('backbone')
+const entriesTemplate = require('../templates/entries.html')
+const lang = require('../translations')
 
-var EntriesView = Backbone.View.extend({
+const EntriesView = Backbone.View.extend({
   el: '#entries',
 
   initialize: function (options) {
@@ -32,21 +32,21 @@ var EntriesView = Backbone.View.extend({
 
   // Generate opacity for docs and filter by query
   serialize: function () {
-    var docs = this.collection.filter(this.filter).map(function (doc) {
-      var res = doc.toJSON()
+    const docs = this.collection.filter(this.filter).map(function (doc) {
+      const res = doc.toJSON()
       res.opacity = doc.getOpacity()
       res.url = doc.getUrl()
       return res
     })
 
     return {
-      docs: docs,
+      docs,
       placeholder: lang.emptyDoc
     }
   },
 
   filter: function (doc) {
-    var query = this.litewrite.state.get('query')
+    const query = this.litewrite.state.get('query')
     if (!query) {
       return true
     }
@@ -64,7 +64,7 @@ var EntriesView = Backbone.View.extend({
 
   // Update text and href for a doc
   update: function (doc) {
-    var $item = this.find(doc.id).find('a')
+    const $item = this.find(doc.id).find('a')
     if (!$item.length || doc.isEmpty()) {
       this.render()
       return
@@ -75,7 +75,7 @@ var EntriesView = Backbone.View.extend({
 
   // Moves a doc from its current position to the top of the list
   toTop: function (doc) {
-    var $item = this.removeItem(doc)
+    const $item = this.removeItem(doc)
     $item.children('a').css('opacity', 1)
     this.$el.prepend($item)
   },
@@ -101,13 +101,13 @@ var EntriesView = Backbone.View.extend({
   openDoc: function (e) {
     e.preventDefault()
 
-    var id = this.$(e.currentTarget).attr('data-id')
+    const id = this.$(e.currentTarget).attr('data-id')
     this.litewrite.open(id)
     this.trigger('open')
   },
 
   openFirst: function () {
-    var id = this.$('.item').attr('data-id')
+    const id = this.$('.item').attr('data-id')
     this.litewrite.open(id)
   },
 

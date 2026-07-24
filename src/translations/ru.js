@@ -34,11 +34,11 @@ module.exports = {
 }
 
 function timeAgoWithPlural (word, number) {
-  var num = number > 1 ? (number + ' ') : ''
+  const num = number > 1 ? (number + ' ') : ''
   return num + plural(word, +number) + ' назад'
 }
 
 function plural (word, num) {
-  var forms = word.split('_')
+  const forms = word.split('_')
   return num % 10 === 1 && num % 100 !== 11 ? forms[0] : (num % 10 >= 2 && num % 10 <= 4 && (num % 100 < 10 || num % 100 >= 20) ? forms[1] : forms[2])
 }
