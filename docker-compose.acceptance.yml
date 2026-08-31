@@ -1,0 +1,58 @@
+# Tier 2 acceptance stack: litewrite + a real remoteStorage server + Playwright,
+# driven by `make accept` / `npm run test:accept`. See CLAUDE.md.
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      secrets:
+        - ca-bundle
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8000/"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  remotestorage:
+    image: remotestorage/armadietto-monolithic@sha256:8b3fc8a4ae17612c728a3a4ffabb90a1fa47fcc2ef8126031183a7280a197928
+    volumes:
+      - ./docker/armadietto.conf.json:/etc/armadietto/conf.json:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8000/"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  tests:
+    image: mcr.microsoft.com/playwright:v1.61.1-jammy@sha256:7b86926fff94374389e8e1f4fdc5c76d050d4a06a7886bb537bf412b20e2b71e
+    working_dir: /work
+    volumes:
+      - .:/work
+      - acceptance_node_modules:/work/node_modules
+      # No-op unless NODE_EXTRA_CA_CERTS is set on the host (e.g. behind a
+      # TLS-inspecting corporate proxy): mounts /dev/null otherwise.
+      - ${NODE_EXTRA_CA_CERTS:-/dev/null}:/usr/local/share/extra-ca.pem:ro
+    environment:
+      APP_URL: http://app:8000
+      REMOTESTORAGE_URL: http://remotestorage:8000
+      TEST_USERNAME: acceptance
+      TEST_PASSWORD: acceptance-pw-1234
+      TEST_EMAIL: acceptance@example.com
+      # Browsers are already baked into this image; never let npm try to fetch its own.
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+      NODE_EXTRA_CA_CERTS: ${NODE_EXTRA_CA_CERTS:+/usr/local/share/extra-ca.pem}
+      CI: "true"
+    depends_on:
+      app:
+        condition: service_healthy
+      remotestorage:
+        condition: service_healthy
+    command: sh -c "npm ci && npx playwright test --config=playwright.acceptance.config.js"
+
+volumes:
+  acceptance_node_modules:
+
+secrets:
+  # See the comment above the npm ci step in docker/app.Dockerfile.
+  ca-bundle:
+    file: ${NODE_EXTRA_CA_CERTS:-/dev/null}
