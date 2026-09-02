@@ -9,8 +9,9 @@ compose="docker compose -f docker-compose.acceptance.yml"
 cleanup() {
   status=$?
   if [ "$status" -ne 0 ]; then
-    echo "--- acceptance stack failed (exit $status); container logs follow ---" >&2
-    $compose logs --no-color || true
+    echo "--- acceptance stack failed (exit $status); container status and logs follow ---" >&2
+    $compose ps --all || true
+    $compose logs --no-color --timestamps || true
   fi
   $compose down --volumes --remove-orphans
 }
