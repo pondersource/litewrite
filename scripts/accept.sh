@@ -17,5 +17,9 @@ cleanup() {
 trap cleanup EXIT
 
 $compose build
+# Pull the (large) tests image up front. Otherwise compose fetches it lazily
+# once app/remotestorage are already up, and the concurrent pull+extract can
+# starve their healthchecks of disk/CPU on a loaded CI runner.
+$compose pull tests
 $compose up --detach app remotestorage
 $compose run --rm tests
