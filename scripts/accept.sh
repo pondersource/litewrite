@@ -7,6 +7,11 @@ set -eu
 compose="docker compose -f docker-compose.acceptance.yml"
 
 cleanup() {
+  status=$?
+  if [ "$status" -ne 0 ]; then
+    echo "--- acceptance stack failed (exit $status); container logs follow ---" >&2
+    $compose logs --no-color || true
+  fi
   $compose down --volumes --remove-orphans
 }
 trap cleanup EXIT

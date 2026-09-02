@@ -9,9 +9,11 @@ services:
         - ca-bundle
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8000/"]
-      interval: 2s
-      timeout: 2s
-      retries: 30
+      interval: 3s
+      # Generous: on a shared CI runner this can overlap with pulling and
+      # unpacking the ~750MB tests image, which competes for disk and CPU.
+      timeout: 5s
+      retries: 40
 
   remotestorage:
     image: remotestorage/armadietto-monolithic@sha256:8b3fc8a4ae17612c728a3a4ffabb90a1fa47fcc2ef8126031183a7280a197928
@@ -19,9 +21,11 @@ services:
       - ./docker/armadietto.conf.json:/etc/armadietto/conf.json:ro
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8000/"]
-      interval: 2s
-      timeout: 2s
-      retries: 30
+      interval: 3s
+      # Generous: on a shared CI runner this can overlap with pulling and
+      # unpacking the ~750MB tests image, which competes for disk and CPU.
+      timeout: 5s
+      retries: 40
 
   tests:
     image: mcr.microsoft.com/playwright:v1.61.1-jammy@sha256:7b86926fff94374389e8e1f4fdc5c76d050d4a06a7886bb537bf412b20e2b71e
