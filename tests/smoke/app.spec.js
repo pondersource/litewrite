@@ -34,6 +34,16 @@ test.describe('Litewrite smoke tests', () => {
     await expect(page.locator('#editor')).toHaveValue('')
   })
 
+  test('keeps rapid edits when reloading without waiting for a save timer', async ({ page }) => {
+    await page.goto('/')
+    const editor = page.locator('#editor')
+    await expect(editor).toHaveValue(/Litewrite/)
+    await editor.fill('First revision')
+    await editor.fill('Final revision before reload')
+    await page.reload()
+    await expect(editor).toHaveValue('Final revision before reload')
+  })
+
   test('deleting a note clears its content', async ({ page }) => {
     await page.goto('/')
     const editor = page.locator('#editor')

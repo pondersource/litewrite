@@ -1,4 +1,3 @@
-const _ = require('underscore')
 const Backbone = require('backbone')
 const rsSync = require('rs-adapter')
 const timeAgo = require('../utils').timeAgo
@@ -50,10 +49,11 @@ const Doc = Backbone.Model.extend({
     return opacity
   },
 
-  // send updates at most once per second to remotestorage
-  throttledSave: _.throttle(function () {
+  // Save to the local cache immediately. remoteStorage schedules network sync;
+  // delaying this write can lose the last second of typing on reload.
+  throttledSave: function () {
     this.save()
-  }, 1000),
+  },
 
   formatDate: function () {
     return timeAgo(this.get('lastEdited'))
