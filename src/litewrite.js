@@ -8,8 +8,7 @@ const Doc = require('./models/doc')
 const Docs = require('./collections/docs')
 const State = require('./models/state')
 
-const dropboxApiKey = '6p6q5imoisraq6k'
-const googleDriveClientID = '376607343336-uabp27dse5s1jkr767jpdeqhj7t90bll.apps.googleusercontent.com'
+const storageApiKeys = require('./storage-providers.json')
 
 function Litewrite () {
   this.initialize()
@@ -30,10 +29,7 @@ _.extend(Litewrite.prototype, Backbone.Events, {
     )
 
     const rs = new RemoteStorage({ modules: [RemostStorageDocuments] })
-    rs.setApiKeys({
-      dropbox: dropboxApiKey,
-      googledrive: googleDriveClientID
-    })
+    rs.setApiKeys(storageApiKeys)
     rs.access.claim('documents', 'rw')
     rs.caching.enable('/documents/notes/')
     new Widget(rs).attach('remotestorage-connect')
