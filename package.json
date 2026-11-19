@@ -25,7 +25,9 @@
     "production": "npm run build && NODE_ENV=production npm start"
   },
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "@pondersource/rs-apps": "file:vendor/pondersource-rs-apps-1.0.0.tgz",
+    "remotestoragejs": "file:vendor/remotestoragejs-2.0.0-beta.10-pondersource.6.tgz"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
@@ -35,7 +37,6 @@
     "jquery": "^4.0.0",
     "remotestorage-module-documents": "^0.2.1",
     "remotestorage-widget": "^1.8.1",
-    "remotestoragejs": "file:vendor/remotestoragejs-2.0.0-beta.10-pondersource.4.tgz",
     "standard": "^17.1.2",
     "underscore": "^1.13.8",
     "uuid": "^14.0.1",
