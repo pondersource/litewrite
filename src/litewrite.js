@@ -1,7 +1,6 @@
 const _ = require('underscore')
 const Backbone = require('backbone')
 const RemoteStorage = require('remotestoragejs')
-const { attachSolid } = require('@pondersource/rs-apps')
 const RemostStorageDocuments = require('remotestorage-module-documents')
 const Widget = require('remotestorage-widget')
 const AppView = require('./views/app')
@@ -31,10 +30,10 @@ _.extend(Litewrite.prototype, Backbone.Events, {
 
     const rs = new RemoteStorage({ modules: [RemostStorageDocuments] })
     rs.setApiKeys(storageApiKeys)
-    attachSolid(rs)
+
     rs.access.claim('documents', 'rw')
     rs.caching.enable('/documents/notes/')
-    new Widget(rs).attach('remotestorage-connect')
+    new Widget(rs, { solidProviders: { allowAnyProvider: true } }).attach('remotestorage-connect')
     rs.on('connected', _.bind(function () {
       this.triggerConnected(rs.backend)
     }, this))
