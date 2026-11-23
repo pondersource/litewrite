@@ -25,12 +25,12 @@
     "production": "npm run build && NODE_ENV=production npm start"
   },
   "dependencies": {
-    "express": "^5.2.1",
     "@pondersource/rs-apps": "file:vendor/pondersource-rs-apps-1.0.0.tgz",
+    "express": "^5.2.1",
     "remotestoragejs": "file:vendor/remotestoragejs-2.0.0-beta.10-pondersource.7-preview.2.tgz"
   },
   "devDependencies": {
-    "@playwright/test": "^1.61.1",
+    "@playwright/test": "1.61.1",
     "autosize": "^6.0.1",
     "backbone": "^1.6.1",
     "backbone.localstorage": "^1.1.16",
