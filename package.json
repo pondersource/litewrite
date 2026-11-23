@@ -25,18 +25,18 @@
     "production": "npm run build && NODE_ENV=production npm start"
   },
   "dependencies": {
-    "express": "^5.2.1",
     "@pondersource/rs-apps": "file:vendor/pondersource-rs-apps-1.0.0.tgz",
-    "remotestoragejs": "file:vendor/remotestoragejs-2.0.0-beta.10-pondersource.6.tgz"
+    "express": "^5.2.1",
+    "remotestoragejs": "file:vendor/remotestoragejs-2.0.0-beta.10-pondersource.7-preview.4.tgz"
   },
   "devDependencies": {
-    "@playwright/test": "^1.61.1",
+    "@playwright/test": "1.61.1",
     "autosize": "^6.0.1",
     "backbone": "^1.6.1",
     "backbone.localstorage": "^1.1.16",
     "jquery": "^4.0.0",
     "remotestorage-module-documents": "^0.2.1",
-    "remotestorage-widget": "file:vendor/remotestorage-widget-1.8.2-pondersource.1.tgz",
+    "remotestorage-widget": "file:vendor/remotestorage-widget-1.8.2-pondersource.2-preview.4.tgz",
     "standard": "^17.1.2",
     "underscore": "^1.13.8",
     "uuid": "^14.0.1",

@@ -36,8 +36,8 @@ services:
       - .:/work
       - acceptance_node_modules:/work/node_modules
       # No-op unless NODE_EXTRA_CA_CERTS is set on the host (e.g. behind a
-      # TLS-inspecting corporate proxy): mounts /dev/null otherwise.
-      - ${NODE_EXTRA_CA_CERTS:-/dev/null}:/usr/local/share/extra-ca.pem:ro
+      # TLS-inspecting corporate proxy): mounts an empty fixture otherwise.
+      - ${NODE_EXTRA_CA_CERTS:-./docker/empty-ca.pem}:/usr/local/share/extra-ca.pem:ro
     environment:
       APP_URL: http://app:8000
       REMOTESTORAGE_URL: http://remotestorage:8000
@@ -61,4 +61,4 @@ volumes:
 secrets:
   # See the comment above the npm ci step in docker/app.Dockerfile.
   ca-bundle:
-    file: ${NODE_EXTRA_CA_CERTS:-/dev/null}
+    file: ${NODE_EXTRA_CA_CERTS:-./docker/empty-ca.pem}
