@@ -5,6 +5,8 @@ FROM node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb836
 WORKDIR /app
 
 COPY package.json package-lock.json ./
+# Locked local package dependencies must exist before npm ci.
+COPY vendor/ ./vendor/
 # The ca-bundle secret is empty for everyone except a build running behind a
 # TLS-inspecting proxy (it's wired to $NODE_EXTRA_CA_CERTS in
 # docker-compose.acceptance.yml); only then does npm need to trust it.
