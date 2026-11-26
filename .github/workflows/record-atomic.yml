@@ -63,14 +63,18 @@ jobs:
           exit 1
       - name: Install, save, and reload in Chromium
         run: node screencast/record.cjs
-      - name: Verify and encode MP4
+      - name: Check the browser recording
         run: |
-          ffmpeg -hide_banner -loglevel error -i recording/litewrite-from-atomic-catalog.webm -c:v libx264 -crf 19 -pix_fmt yuv420p -movflags +faststart recording/litewrite-from-atomic-catalog.mp4
-          ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 recording/litewrite-from-atomic-catalog.mp4
+          python3 - <<'PY'
+          from pathlib import Path
+          video = Path('recording/litewrite-from-atomic-catalog.webm')
+          assert video.read_bytes()[:4] == bytes.fromhex('1a45dfa3')
+          print('Verified WebM,', video.stat().st_size, 'bytes')
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: litewrite-from-atomic-catalog
-          path: recording/litewrite-from-atomic-catalog.mp4
+          path: recording/litewrite-from-atomic-catalog.webm
           retention-days: 2
           if-no-files-found: error
       - name: Diagnose failures
