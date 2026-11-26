@@ -50,6 +50,9 @@ if (process.argv[2] === 'setup') {
   code = code.replace("preview === 'litewrite-local'\n", "preview === 'litewrite-local' || catalogPreview === subject\n")
   assert.ok(code.includes("|| catalogPreview === subject"))
   writeFileSync(path, code)
+  const host = 'atomic/browser/data-browser/src/chunks/AppPage/HostedLitewriteFrame.tsx'
+  const frameSource = readFileSync(host, 'utf8').replace('  border: 0;', '  border: 0;\n  display: block;\n  min-height: 520px;').replace('        } catch {', '        } catch (error) {\n          console.error(error);')
+  writeFileSync(host, frameSource)
 } else {
   void record().catch(error => { console.error(error); process.exitCode = 1 })
 }
@@ -62,14 +65,12 @@ async function record () {
     recordVideo: { dir: 'recording/raw', size: { width: 1440, height: 960 } }
   })
   const page = await context.newPage()
-  const video = page.video()
   const seen = []
   page.on('pageerror', error => seen.push(error.message))
   page.on('console', event => { if (event.type() === 'error') seen.push(event.text()) })
   page.on('response', response => {
     if (/app-write|app-agent/.test(response.url())) console.log(response.status(), new URL(response.url()).pathname)
   })
-  const pause = ms => page.waitForTimeout(ms)
   try {
     await page.goto(frontend + '/app/dev-drive', { waitUntil: 'domcontentloaded' })
     await page.waitForURL(/(?:did(?:%3A|:)ad|atomic)(?:%3A|:)/, { timeout: 75000 })
@@ -101,12 +102,14 @@ async function record () {
     await open.click()
     const frame = demo.frameLocator('iframe[title="Litewrite"]')
     const editor = frame.locator('#editor')
-    await frame.getByRole('status').waitFor({ timeout: 15000 })
+    await demo.locator('iframe[title="Litewrite"]').waitFor({ state: 'attached', timeout: 15000 })
+    await frame.locator('#remotestorage-connect[role="status"]').waitFor({ state: 'attached', timeout: 15000 })
+    console.log('Litewrite status:', await frame.locator('#remotestorage-connect').textContent())
     const url = await demo.locator('iframe[title="Litewrite"]').getAttribute('src')
     assert.equal(url, origin + '/?embed=atomic')
     await frame.locator('#editor:not([disabled])').waitFor({ timeout: 45000 })
     await settle(1000)
-    const saved = demo.waitForResponse(r => new URL(r.url()).pathname === '/app-write' && r.ok(), { timeout: 30000 })
+    const saved = demo.waitForResponse(r => new URL(r.url()).pathname === '/app-write' && r.request().method() === 'POST' && r.ok(), { timeout: 30000 })
     await editor.fill('Catalog to AtomicServer\n\nLitewrite is storing this note in the current Atomic drive.')
     await saved
     await frame.getByText('Saved to Atomic', { exact: true }).waitFor({ timeout: 20000 })
@@ -122,6 +125,16 @@ async function record () {
     const active = context.pages().at(-1)
     if (active) {
       console.error('Visible text:', (await active.locator('body').innerText().catch(() => '')).slice(0, 2800))
+      for (const f of active.frames()) {
+        if (f === active.mainFrame()) continue
+        const metrics = await f.evaluate(() => ({
+          title: document.title, size: [window.innerWidth, window.innerHeight],
+          text: document.body?.innerText.slice(0, 1000),
+          status: document.querySelector('#remotestorage-connect')?.outerHTML,
+          referrer: document.referrer
+        })).catch(() => undefined)
+        console.error('Iframe diagnostic:', f.url(), metrics)
+      }
       await active.screenshot({ path: 'recording/diagnostic.png' }).catch(() => undefined)
     }
     console.error('Browser diagnostics:', seen.slice(-35).join('\n'))
