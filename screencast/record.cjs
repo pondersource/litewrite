@@ -72,8 +72,8 @@ async function record () {
     if (/app-write|app-agent/.test(response.url())) console.log(response.status(), new URL(response.url()).pathname)
   })
   try {
-    await page.goto(frontend + '/app/dev-drive', { waitUntil: 'domcontentloaded' })
-    await page.waitForURL(/(?:did(?:%3A|:)ad|atomic)(?:%3A|:)/, { timeout: 75000 })
+    await page.goto(frontend + '/app/dev-drive', { waitUntil: 'commit', timeout: 90000 })
+    await page.waitForURL(/(?:did(?:%3A|:)ad|atomic)(?:%3A|:)/, { timeout: 150000 })
     console.log('Created fresh drive')
     const warm = page
     const demo = await context.newPage()
@@ -85,7 +85,7 @@ async function record () {
     demo.on('response', response => {
       if (/app-write|app-agent/.test(response.url())) console.log(response.status(), new URL(response.url()).pathname)
     })
-    await demo.goto(frontend + '/app/apps?marketplace=' + encodeURIComponent(catalogUrl), { waitUntil: 'domcontentloaded' })
+    await demo.goto(frontend + '/app/apps?marketplace=' + encodeURIComponent(catalogUrl), { waitUntil: 'commit', timeout: 90000 })
     const add = demo.getByRole('button', { name: 'Add marketplace', exact: true })
     await add.waitFor({ timeout: 90000 })
     await settle(950)
@@ -114,7 +114,7 @@ async function record () {
     await saved
     await frame.getByText('Saved to Atomic', { exact: true }).waitFor({ timeout: 20000 })
     await settle(2000)
-    await demo.reload({ waitUntil: 'domcontentloaded' })
+    await demo.reload({ waitUntil: 'commit', timeout: 90000 })
     await open.click({ timeout: 50000 })
     await frame.locator('#editor:not([disabled])').waitFor({ timeout: 35000 })
     assert.match(await editor.inputValue(), /Litewrite is storing this note in the current Atomic drive/)
