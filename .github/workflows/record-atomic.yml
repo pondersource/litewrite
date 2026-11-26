@@ -1,0 +1,83 @@
+name: Record Litewrite in Atomic
+on:
+  push:
+    branches: [codex/litewrite-atomic-screencast]
+    paths: ['screencast/**', '.github/workflows/record-atomic.yml']
+permissions:
+  contents: read
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    env:
+      HUSKY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ontola/atomic-server
+          ref: 22b1de60df59db3e5ea9c6acdba992eb85ae5eb1
+          path: atomic
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: atomic/browser/package.json
+      - name: Prepare browser packages
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          pnpm -C atomic/browser install --frozen-lockfile
+          pnpm -C atomic/browser --filter '@tomic/data-browser^...' run build
+      - name: Start isolated AtomicServer
+        run: |
+          docker run --detach --rm --name litewrite-atomic-demo --network host \
+            -e ATOMIC_IP=127.0.0.1 -e ATOMIC_PORT=9883 -e ATOMIC_DOMAIN=localhost \
+            ghcr.io/ontola/atomic-server:develop
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:9883/server > /tmp/atomic-info.json && break
+            sleep 1
+          done
+          test -s /tmp/atomic-info.json
+          mkdir -p atomic/browser/data-browser/public/wasm
+          for file in atomic_wasm.js atomic_wasm_bg.wasm; do
+            curl --fail --silent --show-error http://localhost:9883/wasm/$file -o atomic/browser/data-browser/public/wasm/$file
+          done
+          file atomic/browser/data-browser/public/wasm/atomic_wasm_bg.wasm | grep -i WebAssembly
+      - name: Build and boot preview
+        run: |
+          node screencast/record.cjs setup
+          npm run build
+          python3 screencast/serve.py > /tmp/litewrite-demo.log 2>&1 &
+          pnpm -C atomic/browser/data-browser dev --host 127.0.0.1 --port 6747 > /tmp/atomic-vite.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:6747/ >/dev/null && curl -fsS http://localhost:8000/catalog/catalog.json >/dev/null && exit 0
+            sleep 1
+          done
+          exit 1
+      - name: Install, save, and reload in Chromium
+        run: node screencast/record.cjs
+      - name: Verify and encode MP4
+        run: |
+          ffmpeg -hide_banner -loglevel error -i recording/litewrite-from-atomic-catalog.webm -c:v libx264 -crf 19 -pix_fmt yuv420p -movflags +faststart recording/litewrite-from-atomic-catalog.mp4
+          ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 recording/litewrite-from-atomic-catalog.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: litewrite-from-atomic-catalog
+          path: recording/litewrite-from-atomic-catalog.mp4
+          retention-days: 2
+          if-no-files-found: error
+      - name: Diagnose failures
+        if: failure()
+        run: |
+          test ! -f /tmp/atomic-vite.log || tail -100 /tmp/atomic-vite.log
+          test ! -f /tmp/litewrite-demo.log || tail -100 /tmp/litewrite-demo.log
+          docker logs litewrite-atomic-demo 2>&1 | tail -80 || true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: screencast-diagnostic
+          path: recording/diagnostic.png
+          retention-days: 1
+          if-no-files-found: ignore
