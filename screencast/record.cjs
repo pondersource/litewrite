@@ -2,7 +2,7 @@ const assert = require('node:assert/strict')
 const { createHash } = require('node:crypto')
 const { createServer } = require('node:http')
 const { mkdirSync, readFileSync, writeFileSync } = require('node:fs')
-const { chromium } = require('@playwright/test')
+const { chromium, expect } = require('@playwright/test')
 
 const origin = 'http://localhost:8000'
 const catalogUrl = origin + '/catalog/catalog.json'
@@ -116,8 +116,8 @@ async function record () {
     await settle(2000)
     await demo.reload({ waitUntil: 'commit', timeout: 90000 })
     await open.click({ timeout: 50000 })
-    await frame.locator('#editor:not([disabled])').waitFor({ timeout: 35000 })
-    assert.match(await editor.inputValue(), /Litewrite is storing this note in the current Atomic drive/)
+    await frame.getByText('Atomic storage connected', { exact: true }).waitFor({ timeout: 35000 })
+    await expect(editor).toHaveValue(/Litewrite is storing this note in the current Atomic drive/, { timeout: 15000 })
     await settle(1900)
     await demo.close()
     await capture.saveAs('recording/litewrite-from-atomic-catalog.webm')
