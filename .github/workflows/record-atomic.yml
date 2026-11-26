@@ -11,6 +11,8 @@ jobs:
     timeout-minutes: 24
     env:
       HUSKY: '0'
+      VITE_ATOMIC_SERVER_URL: 'http://localhost:9883'
+      VITE_PLUGIN_CATALOG_URL: 'http://localhost:8000/catalog/community.json'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
@@ -21,6 +23,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: atomic/browser/package.json
@@ -48,6 +52,7 @@ jobs:
       - name: Build and boot preview
         run: |
           node screencast/record.cjs setup
+          echo '[]' > catalog/community.json
           npm run build
           python3 screencast/serve.py > /tmp/litewrite-demo.log 2>&1 &
           pnpm -C atomic/browser/data-browser dev --host 127.0.0.1 --port 6747 > /tmp/atomic-vite.log 2>&1 &
