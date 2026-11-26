@@ -6,16 +6,16 @@ test('an Atomic frame opens the same Litewrite build and saves notes through its
     body: '<iframe id="litewrite" referrerpolicy="origin" src="http://localhost:8000/?embed=atomic"></iframe>'
   }))
   await page.addInitScript(() => {
-    if (location.origin !== 'http://127.0.0.1:8001') return
+    if (window.location.origin !== 'http://127.0.0.1:8001') return
     document.addEventListener('load', event => {
       const iframe = event.target
       if (iframe.id !== 'litewrite') return
       const channel = new MessageChannel()
-      const notes = JSON.parse(sessionStorage.getItem('notes') || '{}')
+      const notes = JSON.parse(window.sessionStorage.getItem('notes') || '{}')
       channel.port1.onmessage = ({ data: { id, op, key, note } }) => {
         if (op === 'put') notes[key] = note
         if (op === 'delete') delete notes[key]
-        sessionStorage.setItem('notes', JSON.stringify(notes))
+        window.sessionStorage.setItem('notes', JSON.stringify(notes))
         channel.port1.postMessage({ id, result: op === 'list' ? notes : notes[key] })
       }
       iframe.contentWindow.postMessage({ type: 'pondersource.atomic.documents.v1' }, 'http://localhost:8000', [channel.port2])
