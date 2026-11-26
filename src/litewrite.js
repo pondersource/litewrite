@@ -1,21 +1,15 @@
 const _ = require('underscore')
 const Backbone = require('backbone')
-const RemoteStorage = require('remotestoragejs')
-const RemostStorageDocuments = require('remotestorage-module-documents')
-const Widget = require('remotestorage-widget')
 const AppView = require('./views/app')
 const Doc = require('./models/doc')
 const Docs = require('./collections/docs')
-const State = require('./models/state')
 
-const storageApiKeys = require('./storage-providers.json')
-
-function Litewrite () {
-  this.initialize()
+function Litewrite (storage) {
+  this.initialize(storage)
 }
 
 _.extend(Litewrite.prototype, Backbone.Events, {
-  initialize: function () {
+  initialize: function (storage) {
     _.bindAll(
       this,
       'loadDoc',
@@ -28,22 +22,10 @@ _.extend(Litewrite.prototype, Backbone.Events, {
       'triggerDisconnected'
     )
 
-    const rs = new RemoteStorage({ modules: [RemostStorageDocuments] })
-    rs.setApiKeys(storageApiKeys)
-
-    rs.access.claim('documents', 'rw')
-    rs.caching.enable('/documents/notes/')
-    new Widget(rs, { solidProviders: { allowAnyProvider: true } }).attach('remotestorage-connect')
-    rs.on('connected', _.bind(function () {
-      this.triggerConnected(rs.backend)
-    }, this))
-    rs.on('disconnected', this.triggerDisconnected)
-
-    this.state = new State()
+    const connection = storage || this.connectStandalone()
+    this.state = connection.state || new Backbone.Model({ query: '' })
     this.doc = new Doc()
-    this.docs = new Docs(null, {
-      remote: rs.documents.privateList('notes')
-    })
+    this.docs = new Docs(null, { remote: connection.documents })
 
     this.doc
       .on('change:content', this.doc.updateLastEdited)
@@ -53,16 +35,43 @@ _.extend(Litewrite.prototype, Backbone.Events, {
       .on('change:id', this.setUrl)
       .on('change', this.updateDocs)
 
-    this.state.fetch().always(_.bind(function () {
-      this.docs.fetch().always(this.loadDoc)
-    }, this))
-
     this.app = new AppView({
       litewrite: this,
-      remote: rs.documents.publicList('notes'),
+      remote: connection.publicDocuments,
       model: this.doc,
       collection: this.docs
     })
+
+    if (storage) {
+      this.docs.fetch({
+        success: this.loadDoc,
+        error: (docs, error) => storage.onError(error)
+      })
+    } else {
+      this.state.fetch().always(() => this.docs.fetch().always(this.loadDoc))
+    }
+  },
+
+  connectStandalone: function () {
+    const RemoteStorage = require('remotestoragejs')
+    const Documents = require('remotestorage-module-documents')
+    const Widget = require('remotestorage-widget')
+    const State = require('./models/state')
+    const storageApiKeys = require('./storage-providers.json')
+
+    const rs = new RemoteStorage({ modules: [Documents] })
+    rs.setApiKeys(storageApiKeys)
+    rs.access.claim('documents', 'rw')
+    rs.caching.enable('/documents/notes/')
+    new Widget(rs, { solidProviders: { allowAnyProvider: true } }).attach('remotestorage-connect')
+    rs.on('connected', () => this.triggerConnected(rs.backend))
+    rs.on('disconnected', this.triggerDisconnected)
+
+    return {
+      documents: rs.documents.privateList('notes'),
+      publicDocuments: rs.documents.publicList('notes'),
+      state: new State()
+    }
   },
 
   loadDoc: function () {
