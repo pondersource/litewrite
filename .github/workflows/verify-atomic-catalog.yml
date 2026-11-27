@@ -51,7 +51,7 @@ jobs:
           file atomic/browser/data-browser/public/wasm/atomic_wasm_bg.wasm | grep -i WebAssembly
       - name: Serve the candidate catalog and start the unmodified host
         run: |
-          curl -fsS https://raw.githubusercontent.com/ontola/atomic-plugins/ecad51314ed70a2295cc1a3bbb3d9f5f1d6be698/integrations/catalog.json -o upstream-catalog.json
+          curl -fsS https://raw.githubusercontent.com/ontola/atomic-plugins/4417adfc5a81241296ce18b0f4e88f0f19af0e3d/integrations/catalog.json -o upstream-catalog.json
           node scripts/verify-atomic-catalog.cjs serve > /tmp/litewrite-catalog.log 2>&1 &
           pnpm -C atomic/browser/data-browser dev --host 127.0.0.1 --port 6747 > /tmp/atomic-vite.log 2>&1 &
           for i in $(seq 1 75); do
