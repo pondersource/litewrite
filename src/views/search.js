@@ -4,7 +4,8 @@ const lang = require('../translations')
 const SearchView = Backbone.View.extend({
   el: '#search',
 
-  initialize: function () {
+  initialize: function (options) {
+    this.persist = options.persist
     this.render()
     this.setPlaceholder()
   },
@@ -21,7 +22,12 @@ const SearchView = Backbone.View.extend({
 
   search: function () {
     const query = this.$el.val()
-    this.model.save('query', query)
+    this.setQuery(query)
+  },
+
+  setQuery: function (query) {
+    if (this.persist) this.model.save('query', query)
+    else this.model.set('query', query)
   },
 
   handleKey: function (e) {
@@ -61,7 +67,7 @@ const SearchView = Backbone.View.extend({
   },
 
   clear: function () {
-    this.model.save('query', '')
+    this.setQuery('')
     this.render()
   },
 

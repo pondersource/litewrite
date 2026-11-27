@@ -39,6 +39,7 @@ _.extend(Litewrite.prototype, Backbone.Events, {
     this.app = new AppView({
       litewrite: this,
       remote: connection.publicDocuments,
+      persistSearch: !!connection.state,
       model: this.doc,
       collection: this.docs
     })
