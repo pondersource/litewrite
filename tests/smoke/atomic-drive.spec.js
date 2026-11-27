@@ -13,7 +13,6 @@ function boot (source) {
     const props = { ...rows.get(subject) }
     return {
       get: property => props[property],
-      hasClasses: property => props[core + 'isA'].includes(property),
       set: (property, value) => { props[property] = value },
       save: async () => { rows.set(subject, props) },
       destroy: async () => { rows.delete(subject) }
@@ -22,11 +21,8 @@ function boot (source) {
 
   const store = {
     getData: async () => ({ table, rowClass }),
-    query: async ({ property, value, filters, page, pageSize }) =>
-      [...rows].filter(([, props]) => props[property] === value && filters.every(
-        ({ property, value }) => [].concat(props[property]).includes(value)
-      )).slice(page * pageSize, (page + 1) * pageSize).map(([subject]) => subject),
-    getResource: async subject => resource(subject),
+    query: async ({ property, value }) =>
+      [...rows].filter(([, props]) => props[property] === value).map(([subject]) => subject),
     getMany: async subjects => subjects.map(resource),
     newResource: async ({ parent, isA, propVals }) => {
       rows.set(table + '/' + ++nextRow, { ...propVals, [core + 'parent']: parent, [core + 'isA']: isA })
@@ -56,7 +52,7 @@ function boot (source) {
 }
 
 test('the verified bundle opens and saves Litewrite notes in Atomic’s opaque sandbox', async ({ page }) => {
-  const source = readFileSync(join(__dirname, '../../atomic/litewrite-0.1.0.js'), 'utf8')
+  const source = readFileSync(join(__dirname, '../../atomic/litewrite-0.1.1.js'), 'utf8')
   const payload = JSON.stringify(source).replace(/</g, '\\u003c')
   const frameDocument = `<!doctype html>
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-demo' blob:; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'">
@@ -89,12 +85,18 @@ test('the verified bundle opens and saves Litewrite notes in Atomic’s opaque s
   await expect(frame.getByRole('status')).toHaveText('Saved to Atomic')
   await expect(frame.locator('.highlights b')).toHaveCount(0)
 
+  await frame.locator('#add').click()
+  await editor.fill('A distinct second note')
+  await expect(frame.getByRole('status')).toHaveText('Saved to Atomic')
+
   const saved = await page.locator('#atomic').evaluate(element => new Promise(resolve => {
     window.addEventListener('message', event => resolve(event.data), { once: true })
     element.contentWindow.postMessage('saved-rows', '*')
   }))
-  expect(saved).toHaveLength(1)
+  expect(saved).toHaveLength(2)
   await open(saved)
+  await expect(editor).toHaveValue('A distinct second note')
+  await frame.locator('#entries .item').filter({ hasText: 'Atomic note' }).click()
   await expect(editor).toHaveValue('Atomic note <b>with literal HTML</b>')
   expect(diagnostics).toEqual([])
 })
