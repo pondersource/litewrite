@@ -22,7 +22,8 @@
     "test:accept": "./scripts/accept.sh",
     "lint": "standard",
     "format": "standard --fix",
-    "production": "npm run build && NODE_ENV=production npm start"
+    "production": "npm run build && NODE_ENV=production npm start",
+    "build:atomic": "webpack --config scripts/webpack.atomic.js"
   },
   "dependencies": {
     "@pondersource/rs-apps": "file:vendor/pondersource-rs-apps-1.0.0.tgz",
@@ -51,7 +52,8 @@
       "lib",
       "service-worker.js",
       "litewrite.min.js",
-      "workbox-*.js"
+      "workbox-*.js",
+      "atomic/litewrite-*.js"
     ]
   }
 }

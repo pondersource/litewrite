@@ -1,6 +1,5 @@
 const _ = require('underscore')
 const Backbone = require('backbone')
-const entriesTemplate = require('../templates/entries.html')
 const lang = require('../translations')
 
 const EntriesView = Backbone.View.extend({
@@ -10,10 +9,9 @@ const EntriesView = Backbone.View.extend({
     _.bindAll(this, 'filter', 'render', 'update', 'toTop', 'removeItem', 'selectDoc', 'openFirst')
 
     this.litewrite = options.litewrite
-    this.template = _.template(entriesTemplate)
 
     this.collection
-      .on('add', this.render)
+      .on('add reset', this.render)
       .on('change:title', this.update)
       .on('change:lastEdited', this.toTop)
       .on('remove', this.removeItem)
@@ -30,21 +28,6 @@ const EntriesView = Backbone.View.extend({
     'click .item': 'openDoc'
   },
 
-  // Generate opacity for docs and filter by query
-  serialize: function () {
-    const docs = this.collection.filter(this.filter).map(function (doc) {
-      const res = doc.toJSON()
-      res.opacity = doc.getOpacity()
-      res.url = doc.getUrl()
-      return res
-    })
-
-    return {
-      docs,
-      placeholder: lang.emptyDoc
-    }
-  },
-
   filter: function (doc) {
     const query = this.litewrite.state.get('query')
     if (!query) {
@@ -54,7 +37,19 @@ const EntriesView = Backbone.View.extend({
   },
 
   render: function () {
-    this.$el.html(this.template(this.serialize()))
+    const items = document.createDocumentFragment()
+    for (const doc of this.collection.filter(this.filter)) {
+      const item = document.createElement('li')
+      item.className = 'item'
+      item.dataset.id = doc.id
+      const link = document.createElement('a')
+      link.href = '#!' + doc.getUrl()
+      link.style.opacity = doc.getOpacity()
+      link.textContent = doc.get('title') || lang.emptyDoc
+      item.append(link)
+      items.append(item)
+    }
+    this.el.replaceChildren(items)
     this.selectDoc()
   },
 

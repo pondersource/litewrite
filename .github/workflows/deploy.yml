@@ -1,11 +1,13 @@
 name: Deploy
 
-# Publishes the live site at litewrite.net on every push to main, and can
+# Publishes the live site at litewrite.pondersource.com on every push to main, and can
 # also be run manually from the Actions tab.
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
+concurrency: litewrite-pages
 
 permissions:
   contents: write
@@ -24,6 +26,8 @@ jobs:
       - run: npm ci
 
       - run: npm run build
+      - run: npm run build:atomic
+      - run: shasum -a 384 -c scripts/atomic-release.sha384
 
       - name: Assemble site
         # Copy only the files the live site needs into a clean directory.
@@ -37,6 +41,19 @@ jobs:
           mkdir site
           cp index.html litewrite.min.js litewrite.min.js.LICENSE.txt service-worker.js workbox-*.js CNAME site/
           cp -r img style site/
+          # Preserve immutable bundle URLs from earlier Pages releases.
+          git fetch --depth=1 origin gh-pages
+          if git cat-file -e FETCH_HEAD:atomic; then
+            git archive FETCH_HEAD atomic | tar -x -C site
+          fi
+          mkdir -p site/atomic
+          for bundle in atomic/litewrite-*.js; do
+            if [ -f "site/$bundle" ]; then
+              cmp "$bundle" "site/$bundle"
+            else
+              cp "$bundle" "site/$bundle"
+            fi
+          done
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4

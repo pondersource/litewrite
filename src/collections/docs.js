@@ -22,7 +22,7 @@ const Docs = Backbone.Collection.extend({
 
     this.remote = options.remote
 
-    this.remote.on('change', this.rsChange)
+    this.remote.on?.('change', this.rsChange)
   },
 
   addNew: _.throttle(function (options) {
