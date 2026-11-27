@@ -26,6 +26,11 @@ if (process.argv[2] === 'serve') {
 async function verify () {
   const browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1440, height: 960 } })
+  await page.addInitScript(() => {
+    if (location.origin === 'http://localhost:6747') {
+      localStorage.setItem('plugin-catalog-url', 'http://localhost:8000/catalog.json')
+    }
+  })
   const diagnostics = []
   page.on('pageerror', error => diagnostics.push(error.message))
   page.on('console', message => { if (message.type() === 'error') diagnostics.push(message.text()) })
@@ -34,9 +39,8 @@ async function verify () {
     await page.goto('http://localhost:6747/app/dev-drive', { waitUntil: 'commit', timeout: 90000 })
     await page.waitForURL(/(?:did(?:%3A|:)ad|atomic)(?:%3A|:)/, { timeout: 150000 })
     console.log('Created fresh drive')
-    await page.goto('http://localhost:6747/app/apps?preview=plugins&marketplace=' + encodeURIComponent('http://localhost:8000/catalog.json'), { waitUntil: 'commit', timeout: 90000 })
-    await page.getByRole('button', { name: 'Add marketplace', exact: true }).click({ timeout: 90000 })
-    await page.getByRole('checkbox', { name: 'Show experimental apps' }).check({ timeout: 30000 })
+    await page.goto('http://localhost:6747/app/integrations', { waitUntil: 'commit', timeout: 90000 })
+    await page.getByRole('checkbox', { name: 'Show experimental plugins' }).check({ timeout: 30000 })
     const install = page.getByRole('button', { name: 'Install Litewrite', exact: true })
     await install.waitFor({ timeout: 40000 })
     const download = page.waitForResponse(r => r.url() === moduleUrl && r.ok(), { timeout: 50000 })
