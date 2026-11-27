@@ -26,13 +26,17 @@ const AppView = Backbone.View.extend({
     this.entries = new EntriesView({ litewrite: this.litewrite, collection: this.collection })
     this.date = new DateView({ model: this.model })
     const deleteView = new DeleteView({ model: this.model })
-    const share = new ShareView({ model: this.model, collection: this.collection, remote: options.remote })
+    if (options.remote) {
+      const share = new ShareView({ model: this.model, collection: this.collection, remote: options.remote })
+      this.litewrite
+        .on('connected', share.show)
+        .on('disconnected', share.hide)
+      deleteView.on('delete', share.unshare)
+    }
 
     this.litewrite
       .on('ready', this.editor.render)
       .on('ready', this.editor.desktopFocus)
-      .on('connected', share.show)
-      .on('disconnected', share.hide)
 
     this.collection
       .on('update', this.toggleSearch)
@@ -54,7 +58,6 @@ const AppView = Backbone.View.extend({
     deleteView
       .on('delete', this.editor.render)
       .on('delete', this.editor.focus)
-      .on('delete', share.unshare)
   },
 
   events: {

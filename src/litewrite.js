@@ -1,21 +1,15 @@
 const _ = require('underscore')
 const Backbone = require('backbone')
-const RemoteStorage = require('remotestoragejs')
-const RemostStorageDocuments = require('remotestorage-module-documents')
-const Widget = require('remotestorage-widget')
 const AppView = require('./views/app')
 const Doc = require('./models/doc')
 const Docs = require('./collections/docs')
-const State = require('./models/state')
 
-const storageApiKeys = require('./storage-providers.json')
-
-function Litewrite () {
-  this.initialize()
+function Litewrite (storage) {
+  this.initialize(storage)
 }
 
 _.extend(Litewrite.prototype, Backbone.Events, {
-  initialize: function () {
+  initialize: function (storage) {
     _.bindAll(
       this,
       'loadDoc',
@@ -28,22 +22,11 @@ _.extend(Litewrite.prototype, Backbone.Events, {
       'triggerDisconnected'
     )
 
-    const rs = new RemoteStorage({ modules: [RemostStorageDocuments] })
-    rs.setApiKeys(storageApiKeys)
-
-    rs.access.claim('documents', 'rw')
-    rs.caching.enable('/documents/notes/')
-    new Widget(rs, { solidProviders: { allowAnyProvider: true } }).attach('remotestorage-connect')
-    rs.on('connected', _.bind(function () {
-      this.triggerConnected(rs.backend)
-    }, this))
-    rs.on('disconnected', this.triggerDisconnected)
-
-    this.state = new State()
+    const connection = typeof storage === 'function' ? storage(this) : storage
+    this.useHistory = connection.useHistory !== false
+    this.state = connection.state || new Backbone.Model({ query: '' })
     this.doc = new Doc()
-    this.docs = new Docs(null, {
-      remote: rs.documents.privateList('notes')
-    })
+    this.docs = new Docs(null, { remote: connection.documents })
 
     this.doc
       .on('change:content', this.doc.updateLastEdited)
@@ -53,16 +36,21 @@ _.extend(Litewrite.prototype, Backbone.Events, {
       .on('change:id', this.setUrl)
       .on('change', this.updateDocs)
 
-    this.state.fetch().always(_.bind(function () {
-      this.docs.fetch().always(this.loadDoc)
-    }, this))
-
     this.app = new AppView({
       litewrite: this,
-      remote: rs.documents.publicList('notes'),
+      remote: connection.publicDocuments,
       model: this.doc,
       collection: this.docs
     })
+
+    if (connection.onError) {
+      this.docs.fetch({
+        success: this.loadDoc,
+        error: (docs, error) => connection.onError(error)
+      })
+    } else {
+      this.state.fetch().always(() => this.docs.fetch().always(this.loadDoc))
+    }
   },
 
   loadDoc: function () {
@@ -122,7 +110,7 @@ _.extend(Litewrite.prototype, Backbone.Events, {
   },
 
   setUrl: function (doc) {
-    Backbone.history.navigate(doc.getUrl())
+    if (this.useHistory) Backbone.history.navigate(doc.getUrl())
   }
 
 })

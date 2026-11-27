@@ -123,10 +123,16 @@ const EditorView = Backbone.View.extend({
   },
 
   applyHighlights: function (text, query) {
-    const queryRegex = new RegExp(this.escapeRegex(query), 'gi')
-    text = text
-      .replace(/\n$/g, '\n\n')
-      .replace(queryRegex, '<mark>$&</mark>')
+    text = text.replace(/\n$/, '\n\n')
+    if (query) {
+      const queryRegex = new RegExp('(' + this.escapeRegex(query) + ')', 'gi')
+      text = text.split(queryRegex).map((part, i) => {
+        const escaped = _.escape(part)
+        return i % 2 ? '<mark>' + escaped + '</mark>' : escaped
+      }).join('')
+    } else {
+      text = _.escape(text)
+    }
 
     const ua = window.navigator.userAgent.toLowerCase()
     const isIE = !!ua.match(/msie|trident\/7|edge/)

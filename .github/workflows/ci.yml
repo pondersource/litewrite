@@ -19,6 +19,8 @@ jobs:
       - run: npm ci
 
       - run: npm run lint
+      - run: npm run build:atomic
+      - run: shasum -a 384 -c scripts/atomic-release.sha384
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
