@@ -79,20 +79,26 @@ test('the verified bundle opens and saves Litewrite notes in Atomic’s opaque s
     await expect(editor).toBeEnabled()
   }
 
+  async function savedRows () {
+    return page.locator('#atomic').evaluate(element => new Promise(resolve => {
+      window.addEventListener('message', event => resolve(event.data), { once: true })
+      element.contentWindow.postMessage('saved-rows', '*')
+    }))
+  }
+
   await open([])
   await expect(frame.locator('#sharing')).toBeHidden()
   await editor.fill('Atomic note <b>with literal HTML</b>')
   await expect(frame.getByRole('status')).toHaveText('Saved to Atomic')
   await expect(frame.locator('.highlights b')).toHaveCount(0)
 
+  expect(await savedRows()).toHaveLength(1)
   await frame.locator('#add').click()
+  await expect(editor).toHaveValue('')
   await editor.fill('A distinct second note')
   await expect(frame.getByRole('status')).toHaveText('Saved to Atomic')
 
-  const saved = await page.locator('#atomic').evaluate(element => new Promise(resolve => {
-    window.addEventListener('message', event => resolve(event.data), { once: true })
-    element.contentWindow.postMessage('saved-rows', '*')
-  }))
+  const saved = await savedRows()
   expect(saved).toHaveLength(2)
   await open(saved)
   await expect(editor).toHaveValue('A distinct second note')
