@@ -59,7 +59,7 @@ test('the verified bundle opens and saves Litewrite notes in Atomic’s opaque s
     <div id="root"></div>
     <script type="module" nonce="demo">(${boot})(${payload})</script>`
 
-  await page.setContent('<iframe id="atomic" sandbox="allow-scripts allow-modals"></iframe>')
+  await page.setContent('<iframe id="atomic" width="1200" height="680" sandbox="allow-scripts allow-modals"></iframe>')
   const frame = page.frameLocator('#atomic')
   const editor = frame.locator('#editor')
   const diagnostics = []
