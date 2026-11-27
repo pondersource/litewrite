@@ -37,7 +37,7 @@
     "backbone.localstorage": "^1.1.16",
     "jquery": "^4.0.0",
     "remotestorage-module-documents": "^0.2.1",
-    "remotestorage-widget": "file:vendor/remotestorage-widget-1.8.2-pondersource.5-preview.10.tgz",
+    "remotestorage-widget": "file:vendor/remotestorage-widget-1.8.2-pondersource.6-preview.11.tgz",
     "standard": "^17.1.2",
     "underscore": "^1.13.8",
     "uuid": "^14.0.1",
