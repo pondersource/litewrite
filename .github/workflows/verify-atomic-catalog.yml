@@ -32,6 +32,7 @@ jobs:
           npm ci --no-audit --no-fund
           npx playwright install --with-deps chromium
           pnpm -C atomic/browser install --frozen-lockfile
+          pnpm -C atomic/browser --filter @tomic/lib run build
           pnpm -C atomic/browser --filter '@tomic/data-browser^...' run build
       - name: Start isolated AtomicServer
         run: |
