@@ -22,7 +22,7 @@ const AppView = Backbone.View.extend({
 
     this.editor = new EditorView({ model: this.model, litewrite: this.litewrite })
     this.aside = new AsideView({ model: this.model, collection: this.collection })
-    this.search = new SearchView({ model: this.litewrite.state })
+    this.search = new SearchView({ model: this.litewrite.state, persist: options.persistSearch })
     this.entries = new EntriesView({ litewrite: this.litewrite, collection: this.collection })
     this.date = new DateView({ model: this.model })
     const deleteView = new DeleteView({ model: this.model })

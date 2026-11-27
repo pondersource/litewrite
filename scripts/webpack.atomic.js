@@ -6,6 +6,7 @@ const root = path.join(__dirname, '..')
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8')
 const markup = html.split('<body>')[1].split('<script')[0].replace(/<footer>[\s\S]*?<\/footer>/, '')
 const css = fs.readFileSync(path.join(root, 'style/litewrite.css'), 'utf8')
+  .replaceAll('body > .scrollbox', '#root > .scrollbox')
   .replace(/url\(([^)]+)\)/g, (_, filename) => {
     const types = { '.ttf': 'font/ttf', '.otf': 'font/otf', '.png': 'image/png' }
     const type = types[path.extname(filename)]
@@ -21,7 +22,7 @@ module.exports = {
   devtool: false,
   output: {
     path: path.join(root, 'atomic'),
-    filename: 'litewrite-0.1.0.js',
+    filename: 'litewrite-0.1.1.js',
     module: true,
     library: { type: 'module' },
     chunkLoading: false

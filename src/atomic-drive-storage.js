@@ -5,19 +5,24 @@ const SHORTNAME = CORE + 'shortname'
 const DESCRIPTION = CORE + 'description'
 const CLASS = CORE + 'isA'
 const PREFIX = 'litewrite-note/v1\n'
-const PAGE_SIZE = 100
+const READ_BATCH = 100
+const MEMBER_LIMIT = 500
 
 module.exports = async function driveDocuments (store, onStatus) {
   const { table, rowClass } = await store.getData()
   if (!table || !rowClass) throw new Error('Litewrite needs an Atomic Notes table.')
 
-  const filters = [{ property: CLASS, value: rowClass }]
   let tail = Promise.resolve()
   let pending = 0
   const failed = new Set()
 
+  function belongsToTable (row) {
+    const classes = row.get(CLASS)
+    return row.get(PARENT) === table && Array.isArray(classes) && classes.includes(rowClass)
+  }
+
   function parseNote (row) {
-    if (row.error || row.get(PARENT) !== table || !row.hasClasses(rowClass)) return
+    if (!belongsToTable(row)) return
     const value = row.get(DESCRIPTION)
     if (typeof value !== 'string' || !value.startsWith(PREFIX)) return
     const note = JSON.parse(value.slice(PREFIX.length))
@@ -25,16 +30,24 @@ module.exports = async function driveDocuments (store, onStatus) {
     return note
   }
 
+  async function readRows (property, value) {
+    const subjects = await store.query({ property, value })
+    if (subjects.length >= MEMBER_LIMIT) throw new Error('Too many rows to load safely in this Atomic view.')
+    const rows = []
+    for (let offset = 0; offset < subjects.length; offset += READ_BATCH) {
+      const batch = await store.getMany(subjects.slice(offset, offset + READ_BATCH))
+      if (batch.some(row => row.error)) throw new Error('Atomic could not read a note.')
+      rows.push(...batch)
+    }
+    return rows
+  }
+
   async function getRow (id) {
-    const subjects = await store.query({
-      property: PARENT,
-      value: table,
-      filters: [...filters, { property: SHORTNAME, value: id }],
-      page: 0,
-      pageSize: 2
-    })
-    if (subjects.length > 1) throw new Error('Duplicate Atomic note ID.')
-    return subjects.length ? store.getResource(subjects[0]) : undefined
+    const rows = (await readRows(SHORTNAME, id)).filter(row =>
+      belongsToTable(row) && row.get(SHORTNAME) === id
+    )
+    if (rows.length > 1) throw new Error('Duplicate Atomic note ID.')
+    return rows[0]
   }
 
   function write (id, operation) {
@@ -61,19 +74,12 @@ module.exports = async function driveDocuments (store, onStatus) {
     async getAll () {
       await tail
       const notes = Object.create(null)
-      let page = 0
-      let subjects
-      do {
-        subjects = await store.query({ property: PARENT, value: table, filters, page, pageSize: PAGE_SIZE })
-        for (const row of await store.getMany(subjects)) {
-          if (row.error) throw new Error('Atomic could not read a note.')
-          const note = parseNote(row)
-          if (!note) continue
-          if (Object.hasOwn(notes, note.id)) throw new Error('Duplicate Atomic note ID.')
-          notes[note.id] = note
-        }
-        page++
-      } while (subjects.length === PAGE_SIZE)
+      for (const row of await readRows(PARENT, table)) {
+        const note = parseNote(row)
+        if (!note) continue
+        if (Object.hasOwn(notes, note.id)) throw new Error('Duplicate Atomic note ID.')
+        notes[note.id] = note
+      }
       return notes
     },
     set (id, note) {
