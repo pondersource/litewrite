@@ -20,7 +20,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - run: npm ci
@@ -28,6 +28,30 @@ jobs:
       - run: npm run build
       - run: npm run build:atomic
       - run: shasum -a 384 -c scripts/atomic-release.sha384
+
+
+      - uses: actions/checkout@v4
+        with:
+          repository: pondersource/remotestorage.js
+          ref: 607acc5a474c28e08ca3836de71d20c9bdff7ca1
+          path: atomic-storage-source
+          persist-credentials: false
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ontola/atomic-server
+          ref: fb640fb54657ef826db8ec7ca55e24587faab1da
+          path: atomic-sdk-source
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: atomic-sdk-source/browser/package.json
+
+      - run: pnpm install --frozen-lockfile && pnpm --filter @tomic/utils build
+        working-directory: atomic-sdk-source/browser
+
+      - run: node atomic-storage-source/scripts/build-atomic-sdk.mjs atomic-sdk-source atomic-sdk
 
       - name: Assemble site
         # Copy only the files the live site needs into a clean directory.
@@ -40,7 +64,7 @@ jobs:
           rm -rf site
           mkdir site
           cp index.html litewrite.min.js litewrite.min.js.LICENSE.txt service-worker.js workbox-*.js CNAME site/
-          cp -r img style site/
+          cp -r img style atomic-sdk site/
           # Preserve immutable bundle URLs from earlier Pages releases.
           git fetch --depth=1 origin gh-pages
           if git cat-file -e FETCH_HEAD:atomic; then

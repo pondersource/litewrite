@@ -16,6 +16,7 @@ app.get('/service-worker.js', serveFile('service-worker.js'))
 
 app.use('/img', express.static(path.join(__dirname, '../img')))
 app.use('/style', express.static(path.join(__dirname, '../style')))
+app.use('/atomic-sdk', express.static(path.join(__dirname, '../atomic-sdk')))
 
 if (require.main === module) {
   app.listen(port, function (error) {

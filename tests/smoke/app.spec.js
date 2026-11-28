@@ -55,6 +55,15 @@ test.describe('Litewrite smoke tests', () => {
     await expect(editor).toHaveValue('')
   })
 
+  test('offers Atomic app-key setup in the hosted app', async ({ page }) => {
+    await page.goto('/')
+    await page.locator('.rs-box-initial').click()
+    await page.getByRole('button', { name: 'Atomic', exact: true }).click()
+    await expect(page.getByLabel('Atomic server URL')).toHaveValue('https://atomic.place')
+    await expect(page.getByLabel('Atomic drive DID or link')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Create app key' })).toBeVisible()
+  })
+
   test('sidebar toggle button opens the sidebar on mobile', async ({ page }) => {
     // The hamburger menu button is only shown below the mobile breakpoint
     // (see the media query in style/litewrite.css).
